@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AttendanceStatus } from "@prisma/client";
+import type { AttendanceStatus } from "@/lib/attendance-types";
 
 const statusOptions: { value: AttendanceStatus; label: string }[] = [
   { value: "PRESENT", label: "出席" },

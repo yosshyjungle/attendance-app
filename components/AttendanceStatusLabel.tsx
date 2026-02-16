@@ -1,4 +1,4 @@
-import { AttendanceStatus } from "@prisma/client";
+import type { AttendanceStatus } from "@/lib/attendance-types";
 
 const statusConfig: Record<
   AttendanceStatus,

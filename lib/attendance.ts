@@ -1,4 +1,4 @@
-import { AttendanceStatus } from "@prisma/client";
+import { AttendanceStatus } from "./attendance-types";
 
 /**
  * 出席判定ルール（要件定義書 5章）

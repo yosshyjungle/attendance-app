@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateAttendanceStatus } from "@/lib/attendance";
-import { AttendanceStatus } from "@prisma/client";
+import { AttendanceStatus } from "@/lib/attendance-types";
 
 export async function POST(request: Request) {
   try {
