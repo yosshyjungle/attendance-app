@@ -1,0 +1,106 @@
+// Smart Attendance QR - Prisma Schema
+// 要件定義書に基づくデータモデル
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 学校・組織
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes Class[]
+}
+
+// クラス
+model Class {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  students     Student[]
+  lessons      Lesson[]
+}
+
+// 授業
+model Lesson {
+  id          String   @id @default(cuid())
+  classId     String
+  name        String
+  startTime   DateTime
+  endTime     DateTime
+  qrCodeToken String   @unique // 動的QR用トークン
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+}
+
+// 学生
+model Student {
+  id        String   @id @default(cuid())
+  classId   String
+  userId    String   @unique // Clerk user ID
+  name      String
+  studentNo String?  // 学籍番号
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+}
+
+// 認証ユーザー（Clerk連携）
+model User {
+  id           String   @id @default(cuid())
+  clerkId      String   @unique
+  email        String?
+  name         String?
+  role         UserRole @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+// 出席記録
+model Attendance {
+  id               String           @id @default(cuid())
+  lessonId         String
+  studentId        String
+  checkIn          DateTime?        // 入室時刻
+  checkOut         DateTime?        // 退室時刻
+  status           AttendanceStatus @default(ABSENT)
+  correctionReason String?          // 修正理由
+  updatedBy        String?          // 修正者（Clerk ID）
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  lesson  Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, studentId])
+}
+
+enum AttendanceStatus {
+  PRESENT    // 出席
+  LATE       // 遅刻
+  ABSENT     // 欠席
+  EARLY_LEAVE // 早退
+}
