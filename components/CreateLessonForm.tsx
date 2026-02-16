@@ -14,8 +14,10 @@ export function CreateLessonForm({
   const [classId, setClassId] = useState(classes[0]?.id ?? "");
   const today = new Date().toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(today);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:30");
+  const [period, setPeriod] = useState(1);
+  const [lessonType, setLessonType] = useState<"REGULAR" | "EXAM" | "EVENT">("REGULAR");
+  const [startTime, setStartTime] = useState("09:30");
+  const [endTime, setEndTime] = useState("10:15");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +32,9 @@ export function CreateLessonForm({
         body: JSON.stringify({
           name,
           classId,
+          date: startDate,
+          period,
+          lessonType,
           startTime: start.toISOString(),
           endTime: end.toISOString(),
         }),
@@ -83,6 +88,40 @@ export function CreateLessonForm({
           className="w-full rounded-lg border border-slate-200 px-3 py-2"
           required
         />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            時限
+          </label>
+          <select
+            value={period}
+            onChange={(e) => setPeriod(parseInt(e.target.value, 10))}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2"
+          >
+            {[1, 2, 3, 4].map((p) => (
+              <option key={p} value={p}>
+                {p}限
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            種別
+          </label>
+          <select
+            value={lessonType}
+            onChange={(e) =>
+              setLessonType(e.target.value as "REGULAR" | "EXAM" | "EVENT")
+            }
+            className="w-full rounded-lg border border-slate-200 px-3 py-2"
+          >
+            <option value="REGULAR">通常授業</option>
+            <option value="EXAM">期末試験</option>
+            <option value="EVENT">イベント</option>
+          </select>
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>

@@ -15,10 +15,11 @@ export default async function LessonQRPage({
 
   if (!lesson) notFound();
 
+  const token = lesson.qrCodeToken ?? `lesson-${lesson.id}`;
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const checkInUrl = `${baseUrl}/scan/${lesson.qrCodeToken}?action=in`;
-  const checkOutUrl = `${baseUrl}/scan/${lesson.qrCodeToken}?action=out`;
+  const checkInUrl = `${baseUrl}/scan/${token}?action=in`;
+  const checkOutUrl = `${baseUrl}/scan/${token}?action=out`;
 
   return (
     <div className="space-y-8">
@@ -31,13 +32,13 @@ export default async function LessonQRPage({
         <QRCodeDisplay
           title="入室用QR"
           url={checkInUrl}
-          token={lesson.qrCodeToken}
+          token={token}
           action="in"
         />
         <QRCodeDisplay
           title="退室用QR"
           url={checkOutUrl}
-          token={lesson.qrCodeToken}
+          token={token}
           action="out"
         />
       </div>

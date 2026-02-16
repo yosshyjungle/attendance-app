@@ -28,24 +28,70 @@ model Class {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  students     Student[]
-  lessons      Lesson[]
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  students       Student[]
+  lessons        Lesson[]
+  timetableSlots TimetableSlot[]
 }
 
-// 授業
+// 科目（カリキュラムより）
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  timetableSlots TimetableSlot[]
+  lessons        Lesson[]
+}
+
+// 学期（前期: 4/1-9/30, 後期: 10/1-3/31）
+enum Semester {
+  FIRST  // 前期
+  SECOND // 後期
+}
+
+// 時間割（クラス×曜日×時限×科目、前期/後期で異なる）
+model TimetableSlot {
+  id         String   @id @default(cuid())
+  classId    String
+  dayOfWeek  Int      // 0=月, 1=火, 2=水, 3=木, 4=金
+  period     Int      // 1-4
+  subjectId  String
+  semester   Semester
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, dayOfWeek, period, semester])
+}
+
+// 授業（日付×クラス×時限の1コマ）
 model Lesson {
   id          String   @id @default(cuid())
   classId     String
-  name        String
+  subjectId   String?
+  name        String   // 科目名（表示用）
+  date        DateTime // 授業日
+  period      Int      // 1-4時限
   startTime   DateTime
   endTime     DateTime
-  qrCodeToken String   @unique // 動的QR用トークン
+  qrCodeToken String?  @unique // 動的QR用トークン（任意）
+  lessonType  LessonType @default(REGULAR)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   class       Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject     Subject?     @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   attendances Attendance[]
+}
+
+enum LessonType {
+  REGULAR     // 通常授業
+  EXAM        // 期末試験
+  EVENT       // イベント（旅行、バーベキュー等）
 }
 
 // 学生
@@ -79,14 +125,15 @@ enum UserRole {
   ADMIN
 }
 
-// 出席記録
+// 出席記録（スプレッドシート形式: 1=出席, 2=遅刻, 空=欠席, 公欠=公認欠席）
 model Attendance {
   id               String           @id @default(cuid())
   lessonId         String
   studentId        String
-  checkIn          DateTime?        // 入室時刻
-  checkOut         DateTime?        // 退室時刻
+  checkIn          DateTime?        // 入室時刻（QR用）
+  checkOut         DateTime?        // 退室時刻（QR用）
   status           AttendanceStatus @default(ABSENT)
+  notes            String?          // 特記
   correctionReason String?          // 修正理由
   updatedBy        String?          // 修正者（Clerk ID）
   createdAt        DateTime        @default(now())
@@ -99,8 +146,9 @@ model Attendance {
 }
 
 enum AttendanceStatus {
-  PRESENT    // 出席
-  LATE       // 遅刻
-  ABSENT     // 欠席
-  EARLY_LEAVE // 早退
+  PRESENT         // 出席
+  LATE            // 遅刻
+  ABSENT          // 欠席
+  EARLY_LEAVE     // 早退
+  OFFICIAL_ABSENCE // 公欠
 }

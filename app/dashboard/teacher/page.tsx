@@ -6,12 +6,12 @@ export default async function TeacherDashboardPage() {
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
 
+  const dayStart = new Date(`${todayStr}T00:00:00`);
+  const dayEnd = new Date(`${todayStr}T23:59:59.999`);
+
   const lessons = await prisma.lesson.findMany({
     where: {
-      startTime: {
-        gte: new Date(`${todayStr}T00:00:00`),
-        lt: new Date(`${todayStr}T23:59:59`),
-      },
+      startTime: { gte: dayStart, lte: dayEnd },
     },
     include: {
       class: {
@@ -49,11 +49,28 @@ export default async function TeacherDashboardPage() {
     return { ...lesson, attendances };
   });
 
+  const dateDisplay = today.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+
   return (
     <div>
-      <h1 className="mb-8 text-2xl font-bold text-slate-800">
+      <h1 className="mb-2 text-2xl font-bold text-slate-800">
         教員ダッシュボード
       </h1>
+      <p className="mb-8 text-lg text-slate-600">{dateDisplay}</p>
+
+      <div className="mb-6">
+        <a
+          href="/dashboard/teacher/attendance"
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          出席入力（スプレッドシート形式）
+        </a>
+      </div>
 
       {lessons.length === 0 ? (
         <p className="text-slate-500">本日の授業はありません</p>
@@ -106,7 +123,7 @@ export default async function TeacherDashboardPage() {
                   <tbody>
                     {lesson.attendances.map((att) => (
                       <tr
-                        key={att.id}
+                        key={att.studentId}
                         className="border-b border-slate-100 last:border-0"
                       >
                         <td className="py-3">{att.student.name}</td>
@@ -136,6 +153,9 @@ export default async function TeacherDashboardPage() {
                           <AttendanceCorrectionForm
                             attendanceId={att.id}
                             currentStatus={att.status}
+                            currentCheckIn={att.checkIn}
+                            currentCheckOut={att.checkOut}
+                            lessonDate={lesson.startTime}
                             lessonId={lesson.id}
                             studentId={att.studentId}
                           />

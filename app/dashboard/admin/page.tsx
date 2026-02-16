@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { DeleteClassButton } from "@/components/DeleteClassButton";
 
 export default async function AdminDashboardPage() {
   const [organizations, classes, students, lessons] = await Promise.all([
@@ -17,7 +18,6 @@ export default async function AdminDashboardPage() {
     prisma.lesson.findMany({
       include: { class: true },
       orderBy: { startTime: "desc" },
-      take: 10,
     }),
   ]);
 
@@ -83,6 +83,9 @@ export default async function AdminDashboardPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">
                     授業数
                   </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">
+                    操作
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -94,6 +97,22 @@ export default async function AdminDashboardPage() {
                     </td>
                     <td className="px-4 py-3">{c._count.students}</td>
                     <td className="px-4 py-3">{c._count.lessons}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-3">
+                        <Link
+                          href={`/dashboard/admin/classes/${c.id}/edit`}
+                          className="text-sm text-indigo-600 hover:text-indigo-700"
+                        >
+                          編集
+                        </Link>
+                        <DeleteClassButton
+                          classId={c.id}
+                          className={c.name}
+                          studentCount={c._count.students}
+                          lessonCount={c._count.lessons}
+                        />
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

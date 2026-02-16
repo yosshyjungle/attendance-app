@@ -10,7 +10,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, classId, startTime, endTime } = await request.json();
+    const { name, classId, startTime, endTime, date, period, lessonType } =
+      await request.json();
     if (!name || !classId || !startTime || !endTime) {
       return NextResponse.json(
         { error: "name, classId, startTime, endTime are required" },
@@ -18,15 +19,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const qrCodeToken = `lesson-${randomBytes(16).toString("hex")}`;
+    const lessonDate = date ? new Date(date) : new Date(startTime);
+    const lessonPeriod = period ?? 1;
+    const type = lessonType ?? "REGULAR";
+
+    const qrCodeToken =
+      type === "REGULAR"
+        ? `lesson-${randomBytes(16).toString("hex")}`
+        : null;
 
     const lesson = await prisma.lesson.create({
       data: {
         name,
         classId,
+        date: lessonDate,
+        period: lessonPeriod,
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         qrCodeToken,
+        lessonType: type,
       },
     });
 

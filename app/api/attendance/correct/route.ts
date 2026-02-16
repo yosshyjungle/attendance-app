@@ -9,8 +9,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { attendanceId, lessonId, studentId, status, correctionReason } =
-      await request.json();
+    const {
+      attendanceId,
+      lessonId,
+      studentId,
+      status,
+      checkIn,
+      checkOut,
+      correctionReason,
+    } = await request.json();
     if (!status) {
       return NextResponse.json(
         { error: "status is required" },
@@ -18,14 +25,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const updateData = {
+      status,
+      checkIn: checkIn ? new Date(checkIn) : null,
+      checkOut: checkOut ? new Date(checkOut) : null,
+      correctionReason: correctionReason || null,
+      updatedBy: userId,
+    };
+
     if (attendanceId) {
       await prisma.attendance.update({
         where: { id: attendanceId },
-        data: {
-          status,
-          correctionReason: correctionReason || null,
-          updatedBy: userId,
-        },
+        data: updateData,
       });
     } else if (lessonId && studentId) {
       await prisma.attendance.upsert({
@@ -35,15 +46,9 @@ export async function POST(request: Request) {
         create: {
           lessonId,
           studentId,
-          status,
-          correctionReason: correctionReason || null,
-          updatedBy: userId,
+          ...updateData,
         },
-        update: {
-          status,
-          correctionReason: correctionReason || null,
-          updatedBy: userId,
-        },
+        update: updateData,
       });
     } else {
       return NextResponse.json(

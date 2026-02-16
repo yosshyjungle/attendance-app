@@ -8,6 +8,7 @@ const statusConfig: Record<
   LATE: { label: "遅刻", className: "bg-amber-100 text-amber-800" },
   ABSENT: { label: "欠席", className: "bg-red-100 text-red-800" },
   EARLY_LEAVE: { label: "早退", className: "bg-orange-100 text-orange-800" },
+  OFFICIAL_ABSENCE: { label: "公欠", className: "bg-blue-100 text-blue-800" },
 };
 
 export function AttendanceStatusLabel({

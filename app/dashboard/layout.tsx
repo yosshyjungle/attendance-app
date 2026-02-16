@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { needsOnboarding } from "@/lib/onboarding";
 
 export default async function DashboardLayout({
   children,
@@ -9,6 +10,7 @@ export default async function DashboardLayout({
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
+  if (await needsOnboarding(userId)) redirect("/onboarding");
 
   return (
     <div className="min-h-screen bg-slate-50">

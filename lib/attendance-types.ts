@@ -7,6 +7,7 @@ export const AttendanceStatus = {
   LATE: "LATE",
   ABSENT: "ABSENT",
   EARLY_LEAVE: "EARLY_LEAVE",
+  OFFICIAL_ABSENCE: "OFFICIAL_ABSENCE",
 } as const;
 
 export type AttendanceStatus =
